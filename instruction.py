@@ -14,12 +14,12 @@ INCFSZ_MASK = 0b001111000000
 IORWF_MASK =  0b000100000000
 MOVF_MASK =   0b001000000000
 MOVWF_MASK =  0b000000100000
-NOP_MASK = 0
-RLF_MASK = 0
-RRF_MASK = 0
-SUBWF_MASK = 0
-SWAPF_MASK = 0
-XORWF_MASK = 0
+NOP_MASK =    0b000000000000
+RLF_MASK =    0b001101000000
+RRF_MASK =    0b001100000000
+SUBWF_MASK =  0b000010000000
+SWAPF_MASK =  0b001110000000
+XORWF_MASK =  0b000110000000
 ###### Bit oriented file register operations
 BCF_MASK = 0
 BSF_MASK = 0
@@ -98,12 +98,18 @@ class Instruction():
                 register = instr ^ MOVWF_MASK
                 instruction.append("MOVWF")
                 instruction.append(str(register))
-#            elif instr & 0b == NOP_MASK:
-#            elif instr & 0b == RLF_MASK:
-#            elif instr & 0b == RRF_MASK:
-#            elif instr & 0b == SUBWF_MASK:
-#            elif instr & 0b == SWAPF_MASK:
-#            elif instr & 0b == XORWF_MASK:
+            elif instr == NOP_MASK:
+                instruction.append("NOP")
+            elif instr & BYTE_OPCODE_MASK == RLF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "RLF")
+            elif instr & BYTE_OPCODE_MASK == RRF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "RRF")
+            elif instr & BYTE_OPCODE_MASK == SUBWF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "SUBWF")
+            elif instr & BYTE_OPCODE_MASK == SWAPF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "SWAPF")
+            elif instr & BYTE_OPCODE_MASK == XORWF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "XORWF")
 #            elif instr & 0b == BCF_MASK:
 #            elif instr & 0b == BSF_MASK:
 #            elif instr & 0b == BTFSC_MASK:
