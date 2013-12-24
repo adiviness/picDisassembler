@@ -10,7 +10,7 @@ COMF_MASK =   0b001001000000
 DECF_MASK =   0b000011000000
 DECFSZ_MASK = 0b001011000000
 INCF_MASK =   0b001010000000
-INCFSZ_MASK = 0
+INCFSZ_MASK = 0b001111000000
 IORWF_MASK = 0
 MOVF_MASK = 0
 MOVWF_MASK =  0b000000100000
@@ -42,6 +42,11 @@ D_MASK = 0b000000100000
 F_MASK = 0b000000011111
 B_MASK = 0b000011100000
 K_MASK = 0b000011111111
+##### Opcode format masks
+BYTE_OPCODE_MASK =    0b111111000000
+BIT_OPCODE_MASK =     0b111100000000
+CONTROL_OPCODE_MASK = 0b111100000000
+GOTO_OPCODE_MASK =    0b111000000000
 
 class Instruction():
 
@@ -65,42 +70,26 @@ class Instruction():
             instr = int(byteArray[0:4], 16)
             # TODO should implement this (if python wasn't dumb about bits)
             # ! ( x xor (x - 1))
-            if instr & 0b111111000000 == ADDWF_MASK:
-                register = self._maskRegister(instr)
-                destination = self._maskDestination(instr)
-                instruction.append("ADDWF")
-                instruction.append(str(register))
-                instruction.append(str(destination))
-            elif instr & 0b111111000000 == ANDWF_MASK:
-                register = self._maskRegister(instr)
-                destination = self._maskDestination(instr)
-                instruction.append("ANDWF")
-                instruction.append(str(register))
-                instruction.append(str(destination))
+            if instr & BYTE_OPCODE_MASK == ADDWF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "ADDWF")
+            elif instr & BYTE_OPCODE_MASK == ANDWF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "ANDWF")
             elif instr & 0b111111100000 == CLRF_MASK:
                 register = self._maskRegister(instr)
                 instruction.append("CLRF")
                 instruction.append(str(register))
             elif instr & 0b111111000000 == CLRW_MASK:
                 instruction.append("CLRW")
-            elif instr & 0b111111000000 == COMF_MASK:
-                register = self._maskRegister(instr)
-                destination = self._maskDestination(instr)
-                instruction.append("COMF")
-                instruction.append(str(register))
-                instruction.append(str(destination))
-            elif instr & 0b111111000000 == DECF_MASK:
-                register = self._maskRegister(instr)
-                destination = self._maskDestination(instr)
-                instruction.append("DECF")
-                instruction.append(str(register))
-                instruction.append(str(destination))
-            elif instr & 0b111111000000 == DECFSZ_MASK:
+            elif instr & BYTE_OPCODE_MASK == COMF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "COMF")
+            elif instr & BYTE_OPCODE_MASK == DECF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "DECF")
+            elif instr & BYTE_OPCODE_MASK == DECFSZ_MASK:
                 instruction = self._createByteOrientedOperation(instr, "DECFSZ")
-            elif instr & 0b111111000000 == INCF_MASK:
+            elif instr & BYTE_OPCODE_MASK == INCF_MASK:
                 instruction = self._createByteOrientedOperation(instr, "INCF")
-
-#            elif instr & 0b == INCFSZ_MASK:
+            elif instr & BYTE_OPCODE_MASK == INCFSZ_MASK:
+                instruction = self._createByteOrientedOperation(instr, "INCFSZ")
 #            elif instr & 0b == IORWF_MASK:
 #            elif instr & 0b == MOVF_MASK:
             elif instr & 0b111111100000 == MOVWF_MASK:
