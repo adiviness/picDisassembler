@@ -11,8 +11,8 @@ DECF_MASK =   0b000011000000
 DECFSZ_MASK = 0b001011000000
 INCF_MASK =   0b001010000000
 INCFSZ_MASK = 0b001111000000
-IORWF_MASK = 0
-MOVF_MASK = 0
+IORWF_MASK =  0b000100000000
+MOVF_MASK =   0b001000000000
 MOVWF_MASK =  0b000000100000
 NOP_MASK = 0
 RLF_MASK = 0
@@ -90,8 +90,10 @@ class Instruction():
                 instruction = self._createByteOrientedOperation(instr, "INCF")
             elif instr & BYTE_OPCODE_MASK == INCFSZ_MASK:
                 instruction = self._createByteOrientedOperation(instr, "INCFSZ")
-#            elif instr & 0b == IORWF_MASK:
-#            elif instr & 0b == MOVF_MASK:
+            elif instr & BYTE_OPCODE_MASK == IORWF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "IORWF")
+            elif instr & BYTE_OPCODE_MASK == MOVF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "MOVF")
             elif instr & 0b111111100000 == MOVWF_MASK:
                 register = instr ^ MOVWF_MASK
                 instruction.append("MOVWF")
