@@ -8,8 +8,8 @@ CLRF_MASK =   0b000001100000
 CLRW_MASK =   0b000001000000
 COMF_MASK =   0b001001000000
 DECF_MASK =   0b000011000000
-DECFSZ_MASK = 0
-INCF_MASK = 0
+DECFSZ_MASK = 0b001011000000
+INCF_MASK =   0b001010000000
 INCFSZ_MASK = 0
 IORWF_MASK = 0
 MOVF_MASK = 0
@@ -95,8 +95,11 @@ class Instruction():
                 instruction.append("DECF")
                 instruction.append(str(register))
                 instruction.append(str(destination))
-#            elif instr & 0b == DECFSZ_MASK:
-#            elif instr & 0b == INCF_MASK:
+            elif instr & 0b111111000000 == DECFSZ_MASK:
+                instruction = self._createByteOrientedOperation(instr, "DECFSZ")
+            elif instr & 0b111111000000 == INCF_MASK:
+                instruction = self._createByteOrientedOperation(instr, "INCF")
+
 #            elif instr & 0b == INCFSZ_MASK:
 #            elif instr & 0b == IORWF_MASK:
 #            elif instr & 0b == MOVF_MASK:
@@ -142,6 +145,12 @@ class Instruction():
 
     def _maskRegister(self, instr):
         return instr & F_MASK
+
+    def _createByteOrientedOperation(self, instr, name):
+        register = self._maskRegister(instr)
+        destination = self._maskDestination(instr)
+        instruction = [name, str(register), str(destination)]
+        return instruction
 
                 
 
