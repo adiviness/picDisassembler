@@ -21,7 +21,7 @@ SUBWF_MASK =  0b000010000000
 SWAPF_MASK =  0b001110000000
 XORWF_MASK =  0b000110000000
 ###### Bit oriented file register operations
-BCF_MASK = 0
+BCF_MASK =    0b010000000000
 BSF_MASK = 0
 BTFSC_MASK = 0
 BTFSS_MASK = 0
@@ -110,7 +110,8 @@ class Instruction():
                 instruction = self._createByteOrientedOperation(instr, "SWAPF")
             elif instr & BYTE_OPCODE_MASK == XORWF_MASK:
                 instruction = self._createByteOrientedOperation(instr, "XORWF")
-#            elif instr & 0b == BCF_MASK:
+            elif instr & BIT_OPCODE_MASK == BCF_MASK:
+                instruction = self._createBitOrientedOperation(instr, "BCF")
 #            elif instr & 0b == BSF_MASK:
 #            elif instr & 0b == BTFSC_MASK:
 #            elif instr & 0b == BTFSS_MASK:
@@ -137,16 +138,27 @@ class Instruction():
             destination = 1
         return destination
 
-    def _makeMask(bits):
-        NotImplemented
-
     def _maskRegister(self, instr):
         return instr & F_MASK
+
+    def _maskBit(Self, instr):
+        bit = instr & B_MASK
+        if bit != 0:
+            bit = 1
+        return bit
+
+
 
     def _createByteOrientedOperation(self, instr, name):
         register = self._maskRegister(instr)
         destination = self._maskDestination(instr)
         instruction = [name, str(register), str(destination)]
+        return instruction
+
+    def _createBitOrientedOperation(self, instr, name):
+        register = self._maskRegister(instr)
+        bit = self._maskBit(instr)
+        instruction = [name, str(register), str(bit)]
         return instruction
 
                 
