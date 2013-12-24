@@ -1,10 +1,12 @@
 
 import sys
+from instruction import *
 
 data = 1
 eof = 2
 extendedAddress = 3
 other = 4
+
 
 
 
@@ -19,10 +21,6 @@ def getType(line):
     else:
         return other
     
-def parseInstruction(line):
-    instruction = line[9:-2]
-    if instruction[-2:] == '0C':
-        print('movlw', int(instruction[0:2], 16))
 
 
 def main():
@@ -33,9 +31,10 @@ def main():
     fp = open(filename, 'r')
     for line in fp:
         line = line.strip()
-        lineType = getType(line)
-        if lineType == data:
-            parseInstruction(line)
+        instruction = Instruction(line)
+        if instruction.isData():
+            instruction.disassemble()
+            i = 1
     fp.close()
 
 
