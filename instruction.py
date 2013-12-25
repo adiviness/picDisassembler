@@ -172,8 +172,6 @@ class Instruction():
         literal = instr & K_MASK
         return literal
 
-
-
     def _createByteOrientedOperation(self, instr, name):
         register = self._maskRegister(instr)
         destination = self._maskDestination(instr)
@@ -191,14 +189,15 @@ class Instruction():
         instruction = [name, str(literal)]
         return instruction
 
-            
-
     def disassemble(self):
+        address = 0
         for i in self.instructions:
+            addressText = "%.4d" % address
             if len(i) <= 2:
-                print(' '.join(i))
+                print(addressText, '\t'.join(i), sep='\t')
             else:
-                print(i[0], ', '.join(i[1:]))
+                print(addressText, i[0], ',\t'.join(i[1:]), sep='\t')
+            address += 3
             
 
 
