@@ -1,4 +1,8 @@
 
+# Author: Austin Diviness
+#
+# TODO need to show literals in hex or decimal, preferably with a flag
+
 from binascii import *
 
 
@@ -22,21 +26,21 @@ SWAPF_MASK =  0b001110000000
 XORWF_MASK =  0b000110000000
 ###### Bit oriented file register operations
 BCF_MASK =    0b010000000000
-BSF_MASK = 0
-BTFSC_MASK = 0
-BTFSS_MASK = 0
+BSF_MASK =    0b010100000000
+BTFSC_MASK =  0b011000000000
+BTFSS_MASK =  0b011100000000
 ###### Literal and control operations
-ANDLW_MASK = 0
-CALL_MASK = 0
-CLRWDT_MASK = 0
-GOTO_MASK = 0
-IORLW_MASK = 0
-MOVELW_MASK = 0b110000000000
-OPTION_MASK = 0
-RETLW_MASK = 0
-SLEEP_MASK = 0
-TRIS_MASK = 0
-XORLW_MASK = 0
+ANDLW_MASK =  0b111000000000
+CALL_MASK =   0b100100000000
+CLRWDT_MASK = 0b000000000100
+GOTO_MASK =   0b101000000000
+IORLW_MASK =  0b110100000000
+MOVLW_MASK =  0b110000000000
+OPTION_MASK = 0b000000000010
+RETLW_MASK =  0b100000000000
+SLEEP_MASK =  0b000000000011
+TRIS_MASK =   0b000000000000
+XORLW_MASK =  0b111100000000
 ##### Helper masks
 D_MASK = 0b000000100000
 F_MASK = 0b000000011111
@@ -45,7 +49,7 @@ K_MASK = 0b000011111111
 ##### Opcode format masks
 BYTE_OPCODE_MASK =    0b111111000000
 BIT_OPCODE_MASK =     0b111100000000
-CONTROL_OPCODE_MASK = 0b111100000000
+LITERAL_OPCODE_MASK = 0b111100000000
 GOTO_OPCODE_MASK =    0b111000000000
 
 class Instruction():
@@ -70,6 +74,7 @@ class Instruction():
             instr = int(byteArray[0:4], 16)
             # TODO should implement this (if python wasn't dumb about bits)
             # ! ( x xor (x - 1))
+            # Byte oriented file register operations
             if instr & BYTE_OPCODE_MASK == ADDWF_MASK:
                 instruction = self._createByteOrientedOperation(instr, "ADDWF")
             elif instr & BYTE_OPCODE_MASK == ANDWF_MASK:
@@ -110,24 +115,42 @@ class Instruction():
                 instruction = self._createByteOrientedOperation(instr, "SWAPF")
             elif instr & BYTE_OPCODE_MASK == XORWF_MASK:
                 instruction = self._createByteOrientedOperation(instr, "XORWF")
+            # Bit oriented file register operations
             elif instr & BIT_OPCODE_MASK == BCF_MASK:
                 instruction = self._createBitOrientedOperation(instr, "BCF")
-#            elif instr & 0b == BSF_MASK:
-#            elif instr & 0b == BTFSC_MASK:
-#            elif instr & 0b == BTFSS_MASK:
-#            elif instr & 0b == ANDLW_MASK:
-#            elif instr & 0b == CALL_MASK:
-#            elif instr & 0b == CLRWDT_MASK:
-#            elif instr & 0b == GOTO_MASK:
-#            elif instr & 0b == IORLW_MASK:
-            elif instr & 0b110000000000 == MOVELW_MASK:
-                instruction.append("MOVLW")
-                instruction.append(str(byteArray[2:4])[2:4])
-#            elif instr & 0b == OPTION_MASK:
-#            elif instr & 0b == RETLW_MASK:
-#            elif instr & 0b == SLEEP_MASK:
-#            elif instr & 0b == TRIS_MASK:
-#            elif instr & 0b == XORLW_MASK:
+            elif instr & BIT_OPCODE_MASK == BSF_MASK:
+                instruction = self._createBitOrientedOperation(instr, "BSF")
+            elif instr & BIT_OPCODE_MASK == BTFSC_MASK:
+                instruction = self._createBitOrientedOperation(instr, "BTFSC")
+            elif instr & BIT_OPCODE_MASK == BTFSS_MASK:
+                instruction = self._createBitOrientedOperation(instr, "BSFSS")
+            # Logical and control Operations
+            elif instr & LITERAL_OPCODE_MASK == ANDLW_MASK:
+                instruction = self._createLiteralOperation(instr, "ANDLW")
+            elif instr & LITERAL_OPCODE_MASK == CALL_MASK:
+                instruction = self._createLiteralOperation(instr, "CALL")
+            elif instr == CLRWDT_MASK:
+                instruction.append("CLRWDT")
+            elif instr & GOTO_OPCODE_MASK == GOTO_MASK:
+                jump = instr & 0b000111111111
+                instruction.append("GOTO")
+                instruction.append(str(jump))
+            elif instr & LITERAL_OPCODE_MASK == IORLW_MASK:
+                instruction = self._createLiteralOperation(instr, "IORLW")
+            elif instr & 0b110000000000 == MOVLW_MASK:
+                instruction = self._createLiteralOperation(instr, "MOVLW")
+            elif instr == OPTION_MASK:
+                instruction.append("OPTION")
+            elif instr & LITERAL_OPCODE_MASK == RETLW_MASK:
+                instruction = self._createLiteralOperation(instr, "RETLW")
+            elif instr == SLEEP_MASK:
+                instruction.append("SLEEP")
+            elif (instr | TRIS_MASK) >> 3 == 0:
+                instruction.append("TRIS")
+                instruction.append(str(instr))
+            elif instr & LITERAL_OPCODE_MASK == XORLW_MASK:
+                instruction = self._createLiteralOperation(instr, "XORLW")
+
             instructionStack.append(instruction)
             byteArray = byteArray[4:]
         return instructionStack[::-1]
@@ -141,11 +164,13 @@ class Instruction():
     def _maskRegister(self, instr):
         return instr & F_MASK
 
-    def _maskBit(Self, instr):
-        bit = instr & B_MASK
-        if bit != 0:
-            bit = 1
+    def _maskBit(self, instr):
+        bit = (instr & B_MASK) >> 5
         return bit
+
+    def _maskLiteral(self, instr):
+        literal = instr & K_MASK
+        return literal
 
 
 
@@ -161,7 +186,10 @@ class Instruction():
         instruction = [name, str(register), str(bit)]
         return instruction
 
-                
+    def _createLiteralOperation(self, instr, name):
+        literal = self._maskLiteral(instr)
+        instruction = [name, str(literal)]
+        return instruction
 
             
 
